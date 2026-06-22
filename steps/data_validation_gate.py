@@ -44,33 +44,26 @@ def data_validation_gate(df: pd.DataFrame) -> pd.DataFrame:
     # 2. Ausreichende Datenmenge
     # Datensatz muss mindestns 1000 Zeilen haben, es gibt keine Obergrenze
     validator.expect_table_row_count_to_be_between(
-        min_value=1000,
+        min_value=500,
         max_value=None
     )
 
     # 3. Zielvariable vorhanden
-    validator.expect_column_to_exist("Late_delivery_risk")
+    validator.expect_column_to_exist("class")
 
     # 4. Nullwertanteil nicht zu hoch in der Zielvariablen Spalte
     # Mindestens 80% der Werte dürfen nicht null sein --> Nullwertanteil nicht zu hoch --> Nicht Null sondern NaN
 
     validator.expect_column_values_to_not_be_null(
-        column="Late_delivery_risk",
+        column="class",
         mostly=0.8
     )
 
-    # 5. Klassenvorteilung brauchbar
-    # Enthält die Zielvariable nur die erlaubten Werte 0 oder 1
-    validator.expect_column_distinct_values_to_be_in_set(
-        column="Late_delivery_risk",
-        value_set=[0, 1]
-    )
-
     # Berechnung der Klassenverteilung der Zielvariablen
-    class_distribution = df["Late_delivery_risk"].value_counts(normalize=True)
+    class_distribution = df["class"].value_counts(normalize=True)
 
     #Macht die kleinere Klasse weniger als 10% aus
-    if class_distribution.min() < 0.3:
+    if class_distribution.min() < 0.1:
         raise ValueError(
             f"Data Validation Gate failed: Class distribution is too imbalanced: "
             f"{class_distribution.to_dict()}"

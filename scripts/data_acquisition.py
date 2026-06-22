@@ -1,19 +1,53 @@
 from pathlib import Path
-import kagglehub
+
 import pandas as pd
+from sklearn.datasets import fetch_openml
 
-# Download latest version
-path = kagglehub.dataset_download("shashwatwork/dataco-smart-supply-chain-for-big-data-analysis")
 
-# Hauptdatei
-csv_file = Path(path) / "DataCoSupplyChainDataset.csv"
+# =========================
+# Dataset configuration
+# =========================
+DATASET_ID = 31  # OpenML credit-g dataset
 
-# Data-Verzeichnis anlegen
-Path("../data/raw").mkdir(parents=True, exist_ok=True)
+OUTPUT_DIR = Path("../data/raw")
 
-# CSV laden
-df = pd.read_csv(csv_file, encoding="latin1")
+PARQUET_FILE = OUTPUT_DIR / "german_credit.parquet"
+CSV_FILE = OUTPUT_DIR / "german_credit.csv"
 
-# Als Parquet speichern
-parquet_file = Path("../data/raw/dataco.parquet")
-df.to_parquet(parquet_file, index=False)
+
+# =========================
+# Load dataset from OpenML
+# =========================
+credit_data = fetch_openml(
+    data_id=DATASET_ID,
+    as_frame=True,
+    parser="auto"
+)
+
+features = credit_data.data
+target = credit_data.target.rename("class")
+
+df = pd.concat([features, target], axis=1)
+
+
+# =========================
+# Save raw dataset
+# =========================
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+df.to_parquet(PARQUET_FILE, index=False)
+df.to_csv(CSV_FILE, index=False)
+
+
+# =========================
+# Basic information
+# =========================
+print(f"Parquet saved to: {PARQUET_FILE}")
+print(f"CSV saved to: {CSV_FILE}")
+print(f"Shape: {df.shape}")
+
+print("\nColumns:")
+print(df.columns.tolist())
+
+print("\nTarget distribution:")
+print(df["class"].value_counts())
