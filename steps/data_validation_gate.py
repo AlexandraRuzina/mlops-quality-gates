@@ -44,7 +44,7 @@ def data_validation_gate(df: pd.DataFrame) -> pd.DataFrame:
     # 2. Ausreichende Datenmenge
     # Datensatz muss mindestns 1000 Zeilen haben, es gibt keine Obergrenze
     validator.expect_table_row_count_to_be_between(
-        min_value=500,
+        min_value=1000,
         max_value=None
     )
 
@@ -53,7 +53,6 @@ def data_validation_gate(df: pd.DataFrame) -> pd.DataFrame:
 
     # 4. Nullwertanteil nicht zu hoch in der Zielvariablen Spalte
     # Mindestens 80% der Werte dürfen nicht null sein --> Nullwertanteil nicht zu hoch --> Nicht Null sondern NaN
-
     validator.expect_column_values_to_not_be_null(
         column="class",
         mostly=0.8

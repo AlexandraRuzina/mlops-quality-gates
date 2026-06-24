@@ -1,6 +1,5 @@
 from zenml import step
 import pandas as pd
-from pathlib import Path
 
 
 @step
@@ -127,33 +126,6 @@ def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
     # Remove invalid target values
     valid_target_values = ["good", "bad"]
     df = df[df["class"].isin(valid_target_values)]
-
-    # # Sensitive attributes for fairness
-    # sensitive_attributes = df[
-    #     ["personal_status" , "foreign_worker"]
-    # ].copy()
-    #
-    # sensitive_dir = Path("../data")
-    # sensitive_dir.mkdir(parents=True, exist_ok=True)
-    #
-    # sensitive_attributes.to_parquet(
-    #     sensitive_dir / "sensitive_attributes.parquet",
-    #     index=False
-    # )
-    #
-    # sensitive_attributes.to_csv(
-    #     sensitive_dir / "sensitive_attributes.csv",
-    #     index=False
-    # )
-    #
-    # # Remove sensitive attributes from training dataset
-    # df = df.drop(
-    #     columns=[
-    #         "personal_status",
-    #         "foreign_worker",
-    #         "own_telephone"
-    #     ]
-    # )
 
     df = df.reset_index(drop=True)
     return df

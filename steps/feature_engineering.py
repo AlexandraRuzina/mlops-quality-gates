@@ -1,5 +1,6 @@
 from zenml import step
 import pandas as pd
+from pathlib import Path
 
 
 @step
@@ -50,5 +51,20 @@ def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
             return None
 
     df["sex"] = df["personal_status"].apply(extract_sex)
+
+    # Sensitive attributes for fairness
+    sensitive_attributes = df[
+        ["foreign_worker", "sex"]
+    ].copy()
+
+    # Remove sensitive attributes from training dataset
+    df = df.drop(
+        columns=[
+            "personal_status",
+            "foreign_worker",
+            "own_telephone",
+            "sex"
+        ]
+    )
 
     return df
