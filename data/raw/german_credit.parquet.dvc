@@ -1,0 +1,5 @@
+outs:
+- md5: 6951b1dae27a473f987078ed4b07ad9d
+  size: 26984
+  hash: md5
+  path: german_credit.parquet
