@@ -1,10 +1,15 @@
 from zenml import step
+from typing import Annotated
 import pandas as pd
-from pathlib import Path
 
 
 @step
-def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
+def feature_engineering(
+    df: pd.DataFrame,
+) -> tuple[
+    Annotated[pd.DataFrame, "feature_engineered_data"],
+    Annotated[list[str], "sensitive_attributes"],
+]:
     """
     Creates additional domain-specific features for the German Credit dataset.
     """
@@ -63,8 +68,9 @@ def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
             "personal_status",
             "foreign_worker",
             "own_telephone",
-            "sex"
+            "sex",
+            "age"
         ]
     )
 
-    return df
+    return df, sensitive_attributes
