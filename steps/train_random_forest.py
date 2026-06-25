@@ -153,6 +153,8 @@ def train_random_forest(
     #Hyperparameter-Tuning
     #wählt zufällig 20 Kombinationen aus dem Suchraum
     #Für jede Kombination macht es 5-Fold Cross Validation
+    # 20 Kombinationen × 5 Folds = 100 Trainingsläufe
+    # Aber in cv_results_ wird pro Kombination eine zusammengefasste Zeile gespeichert.
     #Bestes Modell wird nach F1-Score ausgewählt
     search = RandomizedSearchCV(
         estimator=pipeline,
@@ -161,12 +163,12 @@ def train_random_forest(
         scoring="f1",
         cv=cv,
         random_state=42,
-        n_jobs=-1,
+        n_jobs=1,
         verbose=2,
         return_train_score=True,
     )
 
-    mlflow.sklearn.autolog(log_models=False)
+    #mlflow.sklearn.autolog(log_models=False)
 
     #Alles innerhalb dieses Blocks wird in MLflow als ein Run gespeichert.
     with mlflow.start_run(run_name="random_forest_training"):

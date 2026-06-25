@@ -8,7 +8,7 @@ def feature_engineering(
     df: pd.DataFrame,
 ) -> tuple[
     Annotated[pd.DataFrame, "feature_engineered_data"],
-    Annotated[list[str], "sensitive_attributes"],
+    Annotated[pd.DataFrame, "sensitive_attributes"],
 ]:
     """
     Creates additional domain-specific features for the German Credit dataset.
