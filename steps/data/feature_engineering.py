@@ -25,24 +25,20 @@ def feature_engineering(
     df["age_group"] = pd.cut(
         df["age"],
         bins=[17, 24, 40, 60, float("inf")],
-        labels=["<25", "25-40", "40-60", "60+"]
+        labels=["<25", "25-40", "40-60", "60+"],
     )
 
-    # 3. Credit burden ratio
-    # Credit amount in relation to number of existing credits
-    df["credit_burden_ratio"] = (
-        df["credit_amount"] / df["existing_credits"]
-    )
-
-    # 4. Negative checking account
-    # Indicates whether the checking account balance is below 0 DM
-    #1 = Konto ist überzogen / negativer Kontostand, sonst 0
-    df["is_negative_checking"] = (
-        df["checking_status"] == "<0"
+    # 5. Additional security
+    # Indicates whether another party, such as a guarantor or co-applicant, exists
+    df["has_additional_security"] = (
+        df["other_parties"] != "none"
     ).astype(int)
 
-    df["has_additional_security"] = (
-            df["other_parties"] != "none"
+    # 6. High-risk financial status
+    # Indicates a combination of negative checking account and low/no savings
+    df["high_risk_financial_status"] = (
+        (df["checking_status"] == "<0")
+        & (df["savings_status"].isin(["<100", "no known savings"]))
     ).astype(int)
 
     def extract_sex(personal_status):
@@ -69,7 +65,7 @@ def feature_engineering(
             "foreign_worker",
             "own_telephone",
             "sex",
-            "age"
+            "age",
         ]
     )
 

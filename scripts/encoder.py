@@ -19,8 +19,8 @@ def create_random_forest_preprocessor(X):
     ]
 
     binary_features = [
-        "is_negative_checking",
-        "has_additional_security"
+        "has_additional_security",
+        "high_risk_financial_status",
     ]
 
     nominal_features = [
@@ -123,8 +123,8 @@ def create_logistic_regression_preprocessor(X):
     ]
 
     binary_features = [
-        "is_negative_checking",
-        "has_additional_security"
+        "has_additional_security",
+        "high_risk_financial_status",
     ]
 
     numeric_features = X.select_dtypes(

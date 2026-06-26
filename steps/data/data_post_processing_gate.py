@@ -15,9 +15,8 @@ def data_post_processing_gate(df: pd.DataFrame) -> pd.DataFrame:
     expected_features = [
         "monthly_payment",
         "age_group",
-        "credit_burden_ratio",
-        "is_negative_checking",
-        "has_additional_security"
+        "has_additional_security",
+        "high_risk_financial_status"
     ]
 
     deleted_attributes = [
@@ -78,20 +77,14 @@ def data_post_processing_gate(df: pd.DataFrame) -> pd.DataFrame:
         strict_min=True
     )
 
-    validator.expect_column_values_to_be_between(
-        column="credit_burden_ratio",
-        min_value=0,
-        strict_min=False
-    )
-
-    validator.expect_column_values_to_be_in_set(
-        column="is_negative_checking",
-        value_set=[0, 1]
-    )
-
     validator.expect_column_values_to_be_in_set(
         column="has_additional_security",
         value_set=[0, 1]
+    )
+
+    validator.expect_column_values_to_be_in_set(
+        column="high_risk_financial_status",
+        value_set=[0, 1],
     )
 
     validator.expect_column_values_to_be_in_set(
@@ -110,15 +103,24 @@ def data_post_processing_gate(df: pd.DataFrame) -> pd.DataFrame:
             f"Sensible Attribute sind noch vorhanden: {remaining_deleted_attributes}"
         )
 
-    # Great Expectations Validierung ausführen
     result = validator.validate()
 
-    failed_expectations = []
+    if not result.success:
+        failed_expectations = []
 
-    if failed_expectations:
+        for validation_result in result.results:
+            if not validation_result.success:
+                expectation_type = validation_result.expectation_config.type
+                column = validation_result.expectation_config.kwargs.get("column", "table")
+
+                failed_expectations.append(
+                    f"{expectation_type} failed for column: {column}"
+                )
+
         raise ValueError(
-            "Failed expectations:\n"
-            + "\n".join(failed_expectations))
+            "Data Post-Processing Gate failed:\n"
+            + "\n".join(failed_expectations)
+        )
 
     print("Data Post-Processing Gate passed.")
 
