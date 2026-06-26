@@ -21,7 +21,10 @@ def test_evaluation(
     X_test: pd.DataFrame,
     y_test: pd.Series,
     model_name: str,
-) -> Annotated[Dict[str, float], "test_metrics"]:
+)  -> tuple[
+    Annotated[Dict[str, float], "test_metrics"],
+    Annotated[np.ndarray, "predicted_labels"],
+]:
     """
     Evaluates a trained model pipeline on the test dataset.
 
@@ -85,4 +88,4 @@ def test_evaluation(
     print(f"ROC-AUC: {roc_auc:.4f}")
     print(f"MCC: {mcc:.4f}")
 
-    return test_metrics
+    return test_metrics, y_pred

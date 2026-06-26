@@ -6,10 +6,8 @@ import pandas as pd
 @step
 def feature_engineering(
     df: pd.DataFrame,
-) -> tuple[
-    Annotated[pd.DataFrame, "feature_engineered_data"],
-    Annotated[pd.DataFrame, "sensitive_attributes"],
-]:
+) -> Annotated[pd.DataFrame, "feature_engineered_data"]:
+
     """
     Creates additional domain-specific features for the German Credit dataset.
     """
@@ -53,20 +51,14 @@ def feature_engineering(
 
     df["sex"] = df["personal_status"].apply(extract_sex)
 
-    # Sensitive attributes for fairness
-    sensitive_attributes = df[
-        ["foreign_worker", "sex"]
-    ].copy()
-
     # Remove sensitive attributes from training dataset
     df = df.drop(
         columns=[
             "personal_status",
             "foreign_worker",
             "own_telephone",
-            "sex",
             "age",
         ]
     )
 
-    return df, sensitive_attributes
+    return df

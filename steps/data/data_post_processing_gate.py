@@ -22,8 +22,8 @@ def data_post_processing_gate(df: pd.DataFrame) -> pd.DataFrame:
     deleted_attributes = [
         "personal_status",
         "foreign_worker",
-        "sex",
-        "own_telephone"
+        "own_telephone",
+        "age"
     ]
 
     min_rows = 800
