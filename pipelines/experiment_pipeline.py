@@ -1,6 +1,6 @@
 from zenml import pipeline
 
-from steps.experiment import tuning_logistic_regression, tuning_random_forest
+from steps.experiment import tuning_random_forest
 from steps.data import data_loader, data_validation_gate, data_post_processing_gate, feature_engineering, \
     preprocess_data, target_encoding, train_test_split
 
@@ -15,7 +15,6 @@ def experiment_pipeline():
     encoded_target_df = target_encoding.encode_target(post_validated_df)
     X_train, X_test, y_train, y_test = train_test_split.train_test_split_step(encoded_target_df)
     best_params = tuning_random_forest.tuning_random_forest(X_train, y_train)
-    best_lr_params = tuning_logistic_regression.tuning_logistic_regression(X_train, y_train)
 
 if __name__ == "__main__":
     experiment_pipeline()

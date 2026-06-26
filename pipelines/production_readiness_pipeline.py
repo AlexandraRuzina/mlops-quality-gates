@@ -2,11 +2,11 @@ from zenml import pipeline
 from zenml.client import Client
 from steps.data import data_loader, data_validation_gate, data_post_processing_gate, feature_engineering, \
     preprocess_data, target_encoding, train_test_split
-from steps.finalCheck import final_training_random_forest, final_training_logistic_regression, test_evaluation
+from steps.finalCheck import final_training_random_forest, test_evaluation, calculate_dummy_metrics, performance_gate
 
 
 @pipeline
-def production_readiness_pipeline(best_rf_params: dict, best_lr_params: dict):
+def production_readiness_pipeline(best_rf_params: dict):
     df = data_loader.load_data()
     validated_df = data_validation_gate.data_validation_gate(df)
     preprocess_df = preprocess_data.preprocess_data(validated_df)
@@ -15,19 +15,14 @@ def production_readiness_pipeline(best_rf_params: dict, best_lr_params: dict):
     encoded_target_df = target_encoding.encode_target(post_validated_df)
     X_train, X_test, y_train, y_test = train_test_split.train_test_split_step(encoded_target_df)
     rf_pipeline = final_training_random_forest.train_final_random_forest(X_train, y_train, best_rf_params)
-    lr_pipeline = final_training_logistic_regression.train_final_logistic_regression(X_train, y_train, best_lr_params)
     rf_test_metrics =test_evaluation.test_evaluation(
         model_pipeline=rf_pipeline,
         X_test=X_test,
         y_test=y_test,
         model_name="random_forest",
     )
-    lr_test_metrics = test_evaluation.test_evaluation(
-        model_pipeline=lr_pipeline,
-        X_test=X_test,
-        y_test=y_test,
-        model_name="logistic_regression",
-    )
+    dummy_accuracy = calculate_dummy_metrics.evaluate_dummy_baseline(X_train, X_test, y_train, y_test)
+    performance_gate.performance_gate(rf_test_metrics, dummy_accuracy)
 
 
 if __name__ == "__main__":
@@ -35,7 +30,5 @@ if __name__ == "__main__":
 
     artifact_rf = client.get_artifact_version(name_id_or_prefix="best_random_forest_params")
     params_rf = artifact_rf.load()
-    artifact_lr = client.get_artifact_version(name_id_or_prefix="best_logistic_regression_params")
-    params_lr = artifact_lr.load()
 
-    production_readiness_pipeline(params_rf, params_lr)
+    production_readiness_pipeline(params_rf)
