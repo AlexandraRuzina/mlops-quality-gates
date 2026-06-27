@@ -2,7 +2,8 @@ from zenml import pipeline
 from zenml.client import Client
 from steps.data import data_loader, data_validation_gate, data_post_processing_gate, feature_engineering, \
     preprocess_data, target_encoding, train_test_split
-from steps.finalCheck import final_training_random_forest, test_evaluation, calculate_dummy_metrics, performance_gate, fairness_gate
+from steps.finalCheck import final_training_random_forest, test_evaluation, calculate_dummy_metrics, performance_gate, \
+    fairness_gate, robustness_gate
 
 
 @pipeline
@@ -24,6 +25,8 @@ def production_readiness_pipeline(best_rf_params: dict):
     dummy_accuracy = calculate_dummy_metrics.evaluate_dummy_baseline(X_train, X_test, y_train, y_test)
     performance_gate.performance_gate(rf_test_metrics, dummy_accuracy)
     fairness_gate.fairness_gate(y_test, y_pred, sex_test)
+    robustness_metrics = robustness_gate.robustness_gate(rf_pipeline, X_test, y_test, rf_test_metrics)
+
 
 
 if __name__ == "__main__":

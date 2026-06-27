@@ -37,6 +37,7 @@ def create_random_forest_preprocessor(X):
     numeric_features = X.select_dtypes(
         include=["int64", "int32", "float64", "float32"]
     ).columns.tolist()
+    print(numeric_features)
 
     numeric_features = [
         col for col in numeric_features
