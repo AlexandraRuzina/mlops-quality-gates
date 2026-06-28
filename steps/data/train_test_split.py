@@ -12,7 +12,6 @@ def train_test_split_step(
     Annotated[pd.DataFrame, "X_test"],
     Annotated[pd.Series, "y_train"],
     Annotated[pd.Series, "y_test"],
-    Annotated[pd.Series, "sex_train"],
     Annotated[pd.Series, "sex_test"],
 ]:
     """
@@ -44,4 +43,4 @@ def train_test_split_step(
     print(f"Sensitive Attribut Trainingsdaten: {sex_train.shape[0]} Zeilen")
     print(f"Sensitive Attribut Testdaten: {sex_test.shape[0]} Zeilen")
 
-    return X_train, X_test, y_train, y_test, sex_train, sex_test
+    return X_train, X_test, y_train, y_test, sex_test

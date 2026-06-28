@@ -1,9 +1,10 @@
 from zenml import step
 import pandas as pd
+from typing import Annotated
 
 
 @step
-def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
+def preprocess_data(df: pd.DataFrame) -> Annotated[pd.DataFrame, "processed_data"]:
     """
     Performs basic data preprocessing for the DataCo dataset.
     """

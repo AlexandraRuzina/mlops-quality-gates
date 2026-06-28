@@ -5,6 +5,7 @@ import mlflow
 import mlflow.sklearn
 
 from zenml import step
+from zenml import get_step_context
 from scripts.encoder import create_random_forest_preprocessor
 
 from sklearn.ensemble import RandomForestClassifier
@@ -25,6 +26,7 @@ def tuning_random_forest(
 
     mlflow.set_tracking_uri("http://127.0.0.1:5000")
     mlflow.set_experiment("tuning")
+    context = get_step_context()
 
     X_train = X_train.copy()
     y_train = y_train.copy()
@@ -82,6 +84,15 @@ def tuning_random_forest(
     )
 
     with mlflow.start_run(run_name="random_forest_training"):
+        mlflow.set_tag(
+            "zenml_run_id",
+            str(context.pipeline_run.id),
+        )
+
+        mlflow.set_tag(
+            "zenml_pipeline_run_name",
+            context.pipeline_run.name,
+        )
 
         mlflow.log_param("model_type", "RandomForestClassifier")
         mlflow.log_param("cv_strategy", "StratifiedKFold")

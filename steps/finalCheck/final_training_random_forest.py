@@ -3,7 +3,7 @@ import pandas as pd
 import mlflow
 import mlflow.sklearn
 from scripts.encoder import create_random_forest_preprocessor
-
+from zenml import get_step_context
 from zenml import step
 
 from sklearn.ensemble import RandomForestClassifier
@@ -24,6 +24,7 @@ def train_final_random_forest(
 
     mlflow.set_tracking_uri("http://127.0.0.1:5000")
     mlflow.set_experiment("final_training")
+    context = get_step_context()
     preprocessor = create_random_forest_preprocessor(X_train)
 
     model = RandomForestClassifier(
@@ -41,6 +42,15 @@ def train_final_random_forest(
     )
 
     with mlflow.start_run(run_name="final_random_forest_training", nested=True):
+        mlflow.set_tag(
+            "zenml_run_id",
+            str(context.pipeline_run.id),
+        )
+
+        mlflow.set_tag(
+            "zenml_pipeline_run_name",
+            context.pipeline_run.name,
+        )
         final_model_pipeline.fit(X_train, y_train)
 
         mlflow.log_params(best_params)

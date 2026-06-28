@@ -1,9 +1,10 @@
 from zenml import step
 import pandas as pd
+from typing import Annotated
 
 
 @step
-def encode_target(df: pd.DataFrame) -> pd.DataFrame:
+def encode_target(df: pd.DataFrame) -> Annotated[pd.DataFrame, "encoded_target_data"]:
     """
     Kodiert die Zielvariable class binär.
     good = 0
