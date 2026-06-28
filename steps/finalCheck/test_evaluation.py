@@ -24,6 +24,7 @@ def test_evaluation(
 )  -> tuple[
     Annotated[Dict[str, float], "test_metrics"],
     Annotated[np.ndarray, "predicted_labels"],
+    Annotated[np.ndarray, "predicted_probabilities"],
 ]:
     """
     Evaluates a trained model pipeline on the test dataset.
@@ -88,4 +89,4 @@ def test_evaluation(
     print(f"ROC-AUC: {roc_auc:.4f}")
     print(f"MCC: {mcc:.4f}")
 
-    return test_metrics, y_pred
+    return test_metrics, y_pred, y_proba
