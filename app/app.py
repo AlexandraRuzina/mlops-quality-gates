@@ -25,7 +25,7 @@ def create_input_dataframe() -> pd.DataFrame:
 
     credit_amount = st.number_input(
         "Credit Amount",
-        min_value=1,
+        min_value=100,
         value=3000,
         step=100,
         help="Requested loan amount. Enter a positive numeric value.",

@@ -61,11 +61,11 @@ def data_validation_gate(df: pd.DataFrame) -> Annotated[pd.DataFrame, "validated
     # 3. Zielvariable vorhanden
     validator.expect_column_to_exist("class")
 
-    # 4. Nullwertanteil nicht zu hoch in der Zielvariablen-Spalte
-    validator.expect_column_values_to_not_be_null(
-        column="class",
-        mostly=0.8,
-    )
+    for column in df.columns:
+        validator.expect_column_values_to_not_be_null(
+            column=column,
+            mostly=0.95,
+        )
 
     # Validation ausführen
     result = validator.validate()

@@ -43,8 +43,6 @@ def generate_perturbation(
                 X_test_perturbed[feature] * noise
             )
 
-    X_test_perturbed["monthly_payment"] = X_test_perturbed["credit_amount"] / X_test_perturbed["duration"]
-
     # ------------------------------------------------------------------
     # Enforce domain constraints
     # ------------------------------------------------------------------
@@ -55,14 +53,14 @@ def generate_perturbation(
         .clip(lower=0)
     )
 
-
     X_test_perturbed["credit_amount"] = (
         X_test_perturbed["credit_amount"].clip(lower=0)
     )
 
     X_test_perturbed["monthly_payment"] = (
-        X_test_perturbed["monthly_payment"].clip(lower=0)
-    )
+            X_test_perturbed["credit_amount"]
+            / X_test_perturbed["duration"]
+    ).clip(lower=0)
 
     return X_test_perturbed
 

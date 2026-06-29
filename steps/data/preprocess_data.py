@@ -30,13 +30,13 @@ def preprocess_data(df: pd.DataFrame) -> Annotated[pd.DataFrame, "processed_data
     df = df.dropna(subset=numeric_features)
 
     df = df[
-        (df["duration"] >= 0) &
-        (df["credit_amount"] >= 0) &
-        (df["installment_commitment"] >= 0) &
-        (df["residence_since"] >= 0) &
+        (df["duration"] >= 1) &
+        (df["credit_amount"] >= 100) &
+        (df["installment_commitment"] >= 1) &
+        (df["residence_since"] >= 1) &
         (df["age"] >= 18) &
-        (df["existing_credits"] >= 0) &
-        (df["num_dependents"] >= 1)
+        (df["existing_credits"] >= 1) &
+        (df["num_dependents"] >= 0)
         ]
 
     # Remove rows with invalid categorical values
