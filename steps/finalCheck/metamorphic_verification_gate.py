@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Annotated
 
 import numpy as np
 import pandas as pd
@@ -16,7 +16,10 @@ def metamorphic_verification_gate(
     model: Any,
     X_test: pd.DataFrame,
     y_proba,
-) -> dict:
+) -> tuple[
+    Annotated[dict, "metamorphic_report"],
+    Annotated[bool, "metamorphic_gate_passed"],
+]:
     """
     Verifies model behavior using metamorphic relations.
 
@@ -66,10 +69,15 @@ def metamorphic_verification_gate(
             else 0.0
         )
 
+        passed = violation_rate <= MAX_VIOLATION_RATE
+
         return {
             "number_of_cases": number_of_cases,
             "number_of_violations": number_of_violations,
             "violation_rate": violation_rate,
+            "threshold": MAX_VIOLATION_RATE,
+            "comparison": "<=",
+            "passed": passed,
         }
 
     all_rows_mask = pd.Series(True, index=X_test.index)
@@ -108,22 +116,35 @@ def metamorphic_verification_gate(
         expected_direction="increase",
     )
 
-    failed_relations = {
-        name: result
-        for name, result in relation_results.items()
-        if result["violation_rate"] > MAX_VIOLATION_RATE
+    gate_passed = all(
+        result["passed"] for result in relation_results.values()
+    )
+
+    metamorphic_report = {
+        "gate_name": "Metamorphic Verification Gate",
+        "gate_passed": gate_passed,
+        "max_violation_rate": MAX_VIOLATION_RATE,
+        "metrics": relation_results,
     }
 
-    if failed_relations:
-        raise ValueError(
-            f"Metamorphic Verification Gate failed: "
-            f"{len(failed_relations)} relation(s) exceeded the maximum "
-            f"allowed violation rate of {MAX_VIOLATION_RATE:.2f}. "
-            f"Failed relations: {failed_relations}"
+    print("\n" + "=" * 60)
+    print("Metamorphic Verification Gate")
+    print("=" * 60)
+
+    for relation_name, result in relation_results.items():
+        status = "PASSED" if result["passed"] else "FAILED"
+
+        print(
+            f"{relation_name:<32} "
+            f"violations={result['number_of_violations']}/"
+            f"{result['number_of_cases']} "
+            f"violation_rate={result['violation_rate']:.4f} "
+            f"threshold <= {result['threshold']:.4f} "
+            f"{status}"
         )
 
-    return {
-        "max_violation_rate": MAX_VIOLATION_RATE,
-        "relation_results": relation_results,
-        "gate_passed": True,
-    }
+    print("-" * 60)
+    print(f"Overall Gate Status: {'PASSED' if gate_passed else 'FAILED'}")
+    print("=" * 60)
+
+    return metamorphic_report, gate_passed

@@ -7,10 +7,13 @@ import numpy as np
 
 @step
 def fairness_gate(
-        y_test: Annotated[pd.Series, "True labels"],
-        y_pred: Annotated[np.ndarray, "Predicted labels"],
-        sex_test: Annotated[pd.Series, "Sensitive attribute"],
-) -> dict:
+    y_test: Annotated[pd.Series, "True labels"],
+    y_pred: Annotated[np.ndarray, "Predicted labels"],
+    sex_test: Annotated[pd.Series, "Sensitive attribute"],
+) -> tuple[
+    Annotated[dict, "fairness_report"],
+    Annotated[bool, "fairness_gate_passed"],
+]:
     """
     Analyzes fairness based on the separation criterion.
 
@@ -19,9 +22,7 @@ def fairness_gate(
     between male and female applicants.
     """
 
-    print("\n" + "=" * 60)
-    print("Fairness Analysis - Separation Criterion")
-    print("=" * 60)
+    threshold = 0.05
 
     fairness_df = pd.DataFrame({
         "y_true": y_test,
@@ -29,9 +30,14 @@ def fairness_gate(
         "sex": sex_test,
     })
 
-    results = {}
+    group_results = {}
+
+    print("\n" + "=" * 60)
+    print("Fairness Quality Gate")
+    print("=" * 60)
 
     for group in fairness_df["sex"].unique():
+
         group_df = fairness_df[fairness_df["sex"] == group]
 
         tn, fp, fn, tp = confusion_matrix(
@@ -44,7 +50,7 @@ def fairness_gate(
         fnr = fn / (fn + tp) if (fn + tp) > 0 else 0
         tpr = tp / (tp + fn) if (tp + fn) > 0 else 0
 
-        results[group] = {
+        group_results[group] = {
             "samples": len(group_df),
             "false_positive_rate": fpr,
             "false_negative_rate": fnr,
@@ -52,51 +58,73 @@ def fairness_gate(
         }
 
         print(f"\nGroup: {group}")
-        print(f"Samples: {len(group_df)}")
-        print(f"False Positive Rate: {fpr:.4f}")
-        print(f"False Negative Rate: {fnr:.4f}")
-        print(f"True Positive Rate : {tpr:.4f}")
+        print(f"Samples               : {len(group_df)}")
+        print(f"False Positive Rate   : {fpr:.4f}")
+        print(f"False Negative Rate   : {fnr:.4f}")
+        print(f"True Positive Rate    : {tpr:.4f}")
 
-    if "male" in results and "female" in results:
-        fpr_difference = abs(
-            results["male"]["false_positive_rate"]
-            - results["female"]["false_positive_rate"]
-        )
-
-        fnr_difference = abs(
-            results["male"]["false_negative_rate"]
-            - results["female"]["false_negative_rate"]
-        )
-
-        separation_difference = (fpr_difference + fnr_difference) / 2
-
-        results["separation"] = {
-            "fpr_difference": fpr_difference,
-            "fnr_difference": fnr_difference,
-            "separation_difference": separation_difference,
-        }
-
-        print("\n" + "-" * 60)
-        print("Separation Differences")
-        print("-" * 60)
-        print(f"FPR Difference       : {fpr_difference:.4f}")
-        print(f"FNR Difference       : {fnr_difference:.4f}")
-        print(f"Separation Difference: {separation_difference:.4f}")
-
-        if separation_difference > 0.05:
-            raise ValueError(
-                f"Fairness Gate failed: Separation difference ({separation_difference:.2%}) "
-                f"exceeds the allowed threshold of 5.00%. "
-                f"FPR difference: {fpr_difference:.2%}, "
-                f"FNR difference: {fnr_difference:.2%}."
-            )
-
-    else:
+    if "male" not in group_results or "female" not in group_results:
         raise ValueError(
             "Fairness Analysis failed: both groups 'male' and 'female' must be present."
         )
 
-    print("\nFairness Analysis completed.")
+    fpr_difference = abs(
+        group_results["male"]["false_positive_rate"]
+        - group_results["female"]["false_positive_rate"]
+    )
+
+    fnr_difference = abs(
+        group_results["male"]["false_negative_rate"]
+        - group_results["female"]["false_negative_rate"]
+    )
+
+    separation_difference = (fpr_difference + fnr_difference) / 2
+
+    metric_results = {
+        "separation_difference": {
+            "value": separation_difference,
+            "threshold": threshold,
+            "comparison": "<=",
+            "passed": separation_difference <= threshold,
+        }
+    }
+
+    gate_passed = all(
+        result["passed"] for result in metric_results.values()
+    )
+
+    fairness_report = {
+        "gate_name": "Fairness Quality Gate",
+        "gate_passed": gate_passed,
+        "groups": group_results,
+        "metrics": {
+            "fpr_difference": fpr_difference,
+            "fnr_difference": fnr_difference,
+            **metric_results,
+        },
+    }
+
+    print("\n" + "-" * 60)
+    print("Fairness Evaluation")
+    print("-" * 60)
+    print(f"FPR Difference         : {fpr_difference:.4f}")
+    print(f"FNR Difference         : {fnr_difference:.4f}")
+
+    status = (
+        "PASSED"
+        if metric_results["separation_difference"]["passed"]
+        else "FAILED"
+    )
+
+    print(
+        f"Separation Difference  : "
+        f"{separation_difference:.4f} "
+        f"(threshold <= {threshold:.4f}) "
+        f"{status}"
+    )
+
+    print("-" * 60)
+    print(f"Overall Gate Status: {'PASSED' if gate_passed else 'FAILED'}")
     print("=" * 60)
 
-    return results
+    return fairness_report, gate_passed

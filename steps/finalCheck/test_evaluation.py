@@ -4,6 +4,7 @@ import pandas as pd
 import mlflow
 import numpy as np
 from zenml import step
+from zenml import get_step_context
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import (
     accuracy_score,
@@ -21,7 +22,8 @@ def test_evaluation(
     X_test: pd.DataFrame,
     y_test: pd.Series,
     model_name: str,
-)  -> tuple[
+    mlflow_run_id: str,
+) -> tuple[
     Annotated[Dict[str, float], "test_metrics"],
     Annotated[np.ndarray, "predicted_labels"],
     Annotated[np.ndarray, "predicted_probabilities"],
@@ -39,10 +41,13 @@ def test_evaluation(
 
     The input model_pipeline already contains the fitted preprocessor
     and the fitted model.
+
+    The evaluation metrics are logged to the same MLflow run that was
+    created during final model training.
     """
 
     mlflow.set_tracking_uri("http://127.0.0.1:5000")
-    mlflow.set_experiment("test_evaluation")
+    context = get_step_context()
 
     X_test = X_test.copy()
     y_test = y_test.copy()
@@ -74,7 +79,22 @@ def test_evaluation(
         "mcc": float(mcc),
     }
 
-    with mlflow.start_run(run_name=f"{model_name}_test_evaluation"):
+    with mlflow.start_run(run_id=mlflow_run_id):
+        mlflow.set_tag(
+            "zenml_run_id",
+            str(context.pipeline_run.id),
+        )
+
+        mlflow.set_tag(
+            "zenml_pipeline_run_name",
+            context.pipeline_run.name,
+        )
+
+        mlflow.set_tag(
+            "evaluation_model_name",
+            model_name,
+        )
+
         for metric_name, metric_value in test_metrics.items():
             mlflow.log_metric(
                 f"test_{metric_name}",

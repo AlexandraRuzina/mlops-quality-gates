@@ -1,55 +1,94 @@
 from zenml import step
-
+from typing import Annotated
 
 @step
 def performance_gate(
     model_metrics: dict,
     dummy_accuracy: float,
-) -> None:
+) -> tuple[
+    Annotated[dict, "performance_report"],
+    Annotated[bool, "performance_gate_passed"],
+]:
     """
     Performance Quality Gate.
 
-    Validates whether the trained model satisfies the required
-    performance thresholds before deployment.
+    Evaluates whether the trained model satisfies the required
+    performance thresholds and returns a structured gate report.
     """
+
+    thresholds = {
+        "accuracy": dummy_accuracy,
+        "precision": 0.50,
+        "recall": 0.70,
+        "f1": 0.60,
+        "roc_auc": 0.80,
+        "mcc": 0.40,
+    }
+
+    metric_results = {
+        "accuracy": {
+            "value": model_metrics["accuracy"],
+            "threshold": dummy_accuracy,
+            "comparison": ">",
+            "passed": model_metrics["accuracy"] > dummy_accuracy,
+        },
+        "precision": {
+            "value": model_metrics["precision"],
+            "threshold": thresholds["precision"],
+            "comparison": ">",
+            "passed": model_metrics["precision"] > thresholds["precision"],
+        },
+        "recall": {
+            "value": model_metrics["recall"],
+            "threshold": thresholds["recall"],
+            "comparison": ">",
+            "passed": model_metrics["recall"] > thresholds["recall"],
+        },
+        "f1": {
+            "value": model_metrics["f1"],
+            "threshold": thresholds["f1"],
+            "comparison": ">",
+            "passed": model_metrics["f1"] > thresholds["f1"],
+        },
+        "roc_auc": {
+            "value": model_metrics["roc_auc"],
+            "threshold": thresholds["roc_auc"],
+            "comparison": ">",
+            "passed": model_metrics["roc_auc"] > thresholds["roc_auc"],
+        },
+        "mcc": {
+            "value": model_metrics["mcc"],
+            "threshold": thresholds["mcc"],
+            "comparison": ">",
+            "passed": model_metrics["mcc"] > thresholds["mcc"],
+        },
+    }
+
+    gate_passed = all(
+        result["passed"] for result in metric_results.values()
+    )
+
+    performance_report = {
+        "gate_name": "Performance Quality Gate",
+        "gate_passed": gate_passed,
+        "metrics": metric_results,
+    }
 
     print("\n" + "=" * 60)
     print("Performance Quality Gate")
     print("=" * 60)
 
-    print(f"Dummy Accuracy : {dummy_accuracy:.4f}")
-    print(f"Accuracy       : {model_metrics['accuracy']:.4f}")
-    print(f"Precision      : {model_metrics['precision']:.4f}")
-    print(f"Recall         : {model_metrics['recall']:.4f}")
-    print(f"F1-Score       : {model_metrics['f1']:.4f}")
-    print(f"ROC-AUC        : {model_metrics['roc_auc']:.4f}")
-    print(f"MCC            : {model_metrics['mcc']:.4f}")
-
-    checks = {
-        "Accuracy > Dummy": model_metrics["accuracy"] > dummy_accuracy,
-        "Precision > 0.50": model_metrics["precision"] > 0.50,
-        "Recall > 0.70": model_metrics["recall"] > 0.70,
-        "F1-Score > 0.60": model_metrics["f1"] > 0.60,
-        "ROC-AUC > 0.80": model_metrics["roc_auc"] > 0.80,
-        "MCC > 0.40": model_metrics["mcc"] > 0.40,
-    }
-
-    print("\nGate Results")
-    print("-" * 60)
-
-    for check, passed in checks.items():
-        status = "PASSED" if passed else "FAILED"
-        print(f"{check:<25} {status}")
-
-    if not all(checks.values()):
-        failed_checks = [
-            check for check, passed in checks.items() if not passed
-        ]
-
-        raise ValueError(
-            "Performance Quality Gate failed.\n"
-            f"Failed checks: {', '.join(failed_checks)}"
+    for metric, result in metric_results.items():
+        status = "PASSED" if result["passed"] else "FAILED"
+        print(
+            f"{metric:<12} "
+            f"value={result['value']:.4f} "
+            f"threshold {result['comparison']} {result['threshold']:.4f} "
+            f"{status}"
         )
 
-    print("\nPerformance Quality Gate passed successfully.")
+    print("-" * 60)
+    print(f"Overall Gate Status: {'PASSED' if gate_passed else 'FAILED'}")
     print("=" * 60)
+
+    return performance_report, gate_passed
