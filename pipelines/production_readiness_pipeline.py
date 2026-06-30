@@ -95,7 +95,7 @@ def production_readiness_pipeline(best_rf_params: dict):
     )
 
     production_readiness_checked = production_readiness_gate.production_readiness_gate(production_readiness_passed)
-    registered_model_data = register_model.register_model(production_readiness_checked, mlflow_run_id)
+    register_model.register_model(production_readiness_checked, mlflow_run_id)
 
 
 if __name__ == "__main__":

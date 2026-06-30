@@ -1,5 +1,5 @@
 from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OrdinalEncoder, OneHotEncoder, StandardScaler
+from sklearn.preprocessing import OrdinalEncoder, OneHotEncoder
 
 def create_random_forest_preprocessor(X):
     """

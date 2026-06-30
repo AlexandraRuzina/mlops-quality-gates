@@ -14,7 +14,7 @@ def experiment_pipeline():
     encoded_target_df = target_encoding.encode_target(feature_engineering_df)
     post_validated_df = data_post_processing_gate.data_post_processing_gate(encoded_target_df)
     X_train, X_test, y_train, y_test, sex_test = train_test_split.train_test_split_step(post_validated_df)
-    best_params = tuning_random_forest.tuning_random_forest(X_train, y_train)
+    tuning_random_forest.tuning_random_forest(X_train, y_train)
 
 if __name__ == "__main__":
     experiment_pipeline()
