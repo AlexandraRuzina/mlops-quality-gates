@@ -7,7 +7,7 @@ import pandas as pd
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 TUNING_RANDOM_FOREST_PATH = (
-    PROJECT_ROOT / "steps" / "finalCheck" / "tuning_random_forest.py"
+    PROJECT_ROOT / "steps" / "experiment" / "tuning_random_forest.py"
 )
 
 sys.path.append(str(PROJECT_ROOT))
