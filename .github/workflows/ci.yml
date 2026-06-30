@@ -35,10 +35,13 @@ jobs:
 
       - name: Run unit tests with coverage
         run: |
-          pytest tests \
-            --cov=. \
+          pytest tests/ \
+            --cov=app \
+            --cov=pipelines \
+            --cov=scripts \
+            --cov=steps \
             --cov-report=term-missing \
-            --cov-report=xml:coverage.xml \
+            --cov-report=xml \
             --junitxml=test-results.xml
 
       - name: Upload test results
